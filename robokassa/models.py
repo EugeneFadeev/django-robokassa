@@ -2,10 +2,8 @@
 from __future__ import unicode_literals
 
 from django.db import models
-from django.utils.six import python_2_unicode_compatible
 
 
-@python_2_unicode_compatible
 class SuccessNotification(models.Model):
     InvId = models.IntegerField('Номер заказа', db_index=True)
     OutSum = models.CharField('Сумма', max_length=15)
