@@ -6,33 +6,30 @@ from setuptools import setup
 
 
 setup(
-    name='django-robokassa3',
-    version='1.4',
-    author='Mikhail Pyrev',
-    author_email='mikhail.pyrev@gmail.com',
+    name='django3-robokassa',
+    version='1.0',
+    author='Kzilot',
+    author_email='fadeev2012fadeev@gmail.com',
 
     packages=['robokassa', 'robokassa.migrations'],
 
-    url='https://github.com/mpyrev/django-robokassa',
+    url='https://github.com/EugeneFadeev/django3-robokassa',
     license='MIT License',
-    description='Приложение для интеграции платежной системы ROBOKASSA в проекты на Django.',
+    description='Приложение для интеграции платежной системы ROBOKASSA в проекты на Django 3.0.',
     long_description=open('README.rst').read() + "\n\n" + open('CHANGES.rst').read(),
 
     install_requires=[
-        'Django>=1.11',
-        'six',
+        'Django>=2'
     ],
 
     classifiers=(
         'Environment :: Web Environment',
         'Framework :: Django',
-        'Framework :: Django :: 1.11',
         'Framework :: Django :: 2.0',
+        'Framework :: Django :: 3.0',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
