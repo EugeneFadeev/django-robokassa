@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 def receive_result(request):
     """Обработчик для ResultURL."""
     data = request.POST if USE_POST else request.GET
-    logger.info(f'receive_result {request.data}')
+    logger.info(f'receive_result {data}')
     form = ResultURLForm(data)
     logger.info(f'ResultURLForm {form}')
     if form.is_valid():
@@ -47,7 +47,7 @@ def success(request, template_name='robokassa/success.html', extra_context=None,
     """Обработчик для SuccessURL"""
 
     data = request.POST if USE_POST else request.GET
-    logger.info(f'receive_success {request.data}')
+    logger.info(f'receive_success {data}')
     form = SuccessRedirectForm(data)
     logger.info(f'SuccessRedirectForm {form}')
     
@@ -75,7 +75,7 @@ def fail(request, template_name='robokassa/fail.html', extra_context=None,
     """Обработчик для FailURL"""
 
     data = request.POST if USE_POST else request.GET
-    logger.info(f'receive_fail {request.data}')
+    logger.info(f'receive_fail {data}')
     form = FailRedirectForm(data)
     logger.info(f'FailRedirectForm {form}')
     if form.is_valid():
