@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import logging
+
 from django.http import HttpResponse
 from django.template.response import TemplateResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -11,11 +13,16 @@ from robokassa.models import SuccessNotification
 from robokassa.signals import result_received, success_page_visited, fail_page_visited
 
 
+logger = logging.getLogger(__name__)
+
+
 @csrf_exempt
 def receive_result(request):
     """Обработчик для ResultURL."""
     data = request.POST if USE_POST else request.GET
+    logger.info(f'receive_result {request.data}')
     form = ResultURLForm(data)
+    logger.info(f'ResultURLForm {form}')
     if form.is_valid():
         inv_id, out_sum = form.cleaned_data['InvId'], form.cleaned_data['OutSum']
 
@@ -28,8 +35,9 @@ def receive_result(request):
         # осуществить в обработчике сигнала robokassa.signals.result_received
         result_received.send(sender=notification, InvId=inv_id, OutSum=out_sum,
                              extra=form.extra_params())
-
+        logger.info(f'receive_result OK{inv_id}')
         return HttpResponse('OK%s' % inv_id)
+    logger.error(f'receive_result bad signature')
     return HttpResponse('error: bad signature')
 
 
@@ -39,7 +47,10 @@ def success(request, template_name='robokassa/success.html', extra_context=None,
     """Обработчик для SuccessURL"""
 
     data = request.POST if USE_POST else request.GET
+    logger.info(f'receive_success {request.data}')
     form = SuccessRedirectForm(data)
+    logger.info(f'SuccessRedirectForm {form}')
+    
     if form.is_valid():
         inv_id, out_sum = form.cleaned_data['InvId'], form.cleaned_data['OutSum']
 
@@ -51,8 +62,10 @@ def success(request, template_name='robokassa/success.html', extra_context=None,
         context = {'InvId': inv_id, 'OutSum': out_sum, 'form': form}
         context.update(form.extra_params())
         context.update(extra_context or {})
+        logger.error(f'receive_success {template_name} {context}')
         return TemplateResponse(request, template_name, context)
 
+    logger.error(f'receive_success error_template_name')
     return TemplateResponse(request, error_template_name, {'form': form})
 
 
@@ -62,7 +75,9 @@ def fail(request, template_name='robokassa/fail.html', extra_context=None,
     """Обработчик для FailURL"""
 
     data = request.POST if USE_POST else request.GET
+    logger.info(f'receive_fail {request.data}')
     form = FailRedirectForm(data)
+    logger.info(f'FailRedirectForm {form}')
     if form.is_valid():
         inv_id, out_sum = form.cleaned_data['InvId'], form.cleaned_data['OutSum']
 
@@ -75,7 +90,9 @@ def fail(request, template_name='robokassa/fail.html', extra_context=None,
         context = {'InvId': inv_id, 'OutSum': out_sum, 'form': form}
         context.update(form.extra_params())
         context.update(extra_context or {})
+        logger.error(f'receive_fail {template_name} {context}')
         return TemplateResponse(request, template_name, context)
 
+    logger.error(f'receive_fail error_template_name')
     return TemplateResponse(request, error_template_name, {'form': form})
 
