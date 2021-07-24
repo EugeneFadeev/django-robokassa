@@ -4,8 +4,8 @@ from __future__ import unicode_literals
 import logging
 
 from django.http import HttpResponse
-from django.template.response import TemplateResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import render
 
 from robokassa.conf import USE_POST
 from robokassa.forms import ResultURLForm, SuccessRedirectForm, FailRedirectForm
@@ -63,10 +63,10 @@ def success(request, template_name='robokassa/success.html', extra_context=None,
         context.update(form.extra_params())
         context.update(extra_context or {})
         logger.error(f'receive_success {template_name} {context}')
-        return TemplateResponse(request, template_name, context)
+        return render(request, template_name, context=context)
 
     logger.error(f'receive_success error_template_name')
-    return TemplateResponse(request, error_template_name, {'form': form})
+    return render(request, error_template_name, context={'form': form})
 
 
 @csrf_exempt
@@ -91,8 +91,8 @@ def fail(request, template_name='robokassa/fail.html', extra_context=None,
         context.update(form.extra_params())
         context.update(extra_context or {})
         logger.error(f'receive_fail {template_name} {context}')
-        return TemplateResponse(request, template_name, context)
+        return render(request, template_name, context=context)
 
     logger.error(f'receive_fail error_template_name')
-    return TemplateResponse(request, error_template_name, {'form': form})
+    return render(request, error_template_name, context={'form': form})
 
