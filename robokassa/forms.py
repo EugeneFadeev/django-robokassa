@@ -64,7 +64,7 @@ class RobokassaForm(BaseRobokassaForm):
     Culture = forms.CharField(max_length=10, required=False)
     
     # Товарные позиции
-    Receipt = forms.TextField(required=False)
+    Receipt = forms.CharField(max_length=1000, required=False)
     
     # Параметр с URL'ом, на который форма должны быть отправлена.
     # Может пригодиться для использования в шаблоне.
