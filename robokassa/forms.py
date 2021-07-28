@@ -2,9 +2,7 @@
 from __future__ import unicode_literals
 
 from hashlib import md5
-from six.moves.urllib.parse import urlencode
-
-import six
+from urllib.parse import urlencode, quote_plus
 from django import forms
 
 from robokassa.conf import LOGIN, PASSWORD1, PASSWORD2, TEST_MODE, STRICT_CHECK, FORM_TARGET, EXTRA_PARAMS
@@ -64,7 +62,10 @@ class RobokassaForm(BaseRobokassaForm):
 
     # язык общения с клиентом (en или ru)
     Culture = forms.CharField(max_length=10, required=False)
-
+    
+    # Товарные позиции
+    Receipt = forms.TextField(required=False)
+    
     # Параметр с URL'ом, на который форма должны быть отправлена.
     # Может пригодиться для использования в шаблоне.
     target = FORM_TARGET
@@ -92,7 +93,7 @@ class RobokassaForm(BaseRobokassaForm):
             val = self.initial.get(name, field.initial)
             if not val:
                 return val
-            return six.text_type(val).encode('1251')
+            return str(val).encode('1251')
 
         fields = [(name, _initial(name, field))
                   for name, field in list(self.fields.items())
@@ -106,8 +107,11 @@ class RobokassaForm(BaseRobokassaForm):
             value = self.initial[name] if name in self.initial else self.fields[name].initial
             if value is None:
                 return ''
-            return six.text_type(value)
-        standard_part = ':'.join([_val('MrchLogin'), _val('OutSum'), _val('InvId'), PASSWORD1])
+            return str(value)
+        if _val('Receipt'):
+            standard_part = ':'.join([_val('MrchLogin'), _val('OutSum'), _val('InvId'), _val('Receipt'), PASSWORD1])
+        else:
+            standard_part = ':'.join([_val('MrchLogin'), _val('OutSum'), _val('InvId'), PASSWORD1])
         return self._append_extra_part(standard_part, _val)
 
 
@@ -128,7 +132,7 @@ class ResultURLForm(BaseRobokassaForm):
         return self.cleaned_data
 
     def _get_signature_string(self):
-        _val = lambda name: six.text_type(self.cleaned_data[name])
+        _val = lambda name: str(self.cleaned_data[name])
         standard_part = ':'.join([_val('OutSum'), _val('InvId'), PASSWORD2])
         return self._append_extra_part(standard_part, _val)
 
@@ -139,7 +143,7 @@ class _RedirectPageForm(ResultURLForm):
     Culture = forms.CharField(max_length=10)
 
     def _get_signature_string(self):
-        _val = lambda name: six.text_type(self.cleaned_data[name])
+        _val = lambda name: str(self.cleaned_data[name])
         standard_part = ':'.join([_val('OutSum'), _val('InvId'), PASSWORD1])
         return self._append_extra_part(standard_part, _val)
 
