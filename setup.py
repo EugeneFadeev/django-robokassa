@@ -16,7 +16,6 @@ setup(
     url='https://github.com/EugeneFadeev/django3-robokassa',
     license='MIT License',
     description='Приложение для интеграции платежной системы ROBOKASSA в проекты на Django 3.0.',
-    long_description=open('README.rst').read() + "\n\n" + open('CHANGES.rst').read(),
 
     install_requires=[
         'Django>=2'
