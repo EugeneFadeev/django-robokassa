@@ -27,7 +27,7 @@ if TEST_MODE:
         'ROBOKASSA_TEST_FORM_TARGET', 
         'https://auth.robokassa.ru/Merchant/Index.aspx'
     )
-	RECUR_FORM_TARGET = getattr(
+    RECUR_FORM_TARGET = getattr(
         settings, 
         'ROBOKASSA_TEST_RECUR_FORM_TARGET',
         'https://auth.robokassa.ru/Merchant/Recurring'
