@@ -62,10 +62,13 @@ class RobokassaForm(BaseRobokassaForm):
 
     # язык общения с клиентом (en или ru)
     Culture = forms.CharField(max_length=10, required=False)
-    
+
+    # Рекуррентный платеж
+    Recurring = forms.BooleanField(required=False)
+
     # Товарные позиции
     Receipt = forms.CharField(max_length=1000, required=False)
-    
+
     # Параметр с URL'ом, на который форма должны быть отправлена.
     # Может пригодиться для использования в шаблоне.
     target = FORM_TARGET
@@ -89,6 +92,7 @@ class RobokassaForm(BaseRobokassaForm):
         форме. Редирект на адрес, возвращаемый этим методом, эквивалентен
         ручной отправке формы методом GET.
         """
+
         def _initial(name, field):
             val = self.initial.get(name, field.initial)
             if not val:
@@ -98,9 +102,9 @@ class RobokassaForm(BaseRobokassaForm):
         fields = [(name, _initial(name, field))
                   for name, field in list(self.fields.items())
                   if _initial(name, field)
-                 ]
+                  ]
         params = urlencode(fields)
-        return self.target+'?'+params
+        return self.target + '?' + params
 
     def _get_signature_string(self):
         def _val(name):
@@ -108,10 +112,90 @@ class RobokassaForm(BaseRobokassaForm):
             if value is None:
                 return ''
             return str(value)
+
         if _val('Receipt'):
             standard_part = ':'.join([_val('MrchLogin'), _val('OutSum'), _val('InvId'), _val('Receipt'), PASSWORD1])
         else:
             standard_part = ':'.join([_val('MrchLogin'), _val('OutSum'), _val('InvId'), PASSWORD1])
+        return self._append_extra_part(standard_part, _val)
+
+
+class RobokassaRecurringForm(BaseRobokassaForm):
+    # login магазина в обменном пункте
+    MrchLogin = forms.CharField(max_length=20, initial=LOGIN)
+
+    # требуемая к получению сумма
+    OutSum = forms.DecimalField(min_value=0, max_digits=20, decimal_places=2, required=False)
+
+    # номер счета в магазине (должен быть уникальным для магазина)
+    InvoiceID = forms.IntegerField(min_value=0, required=True)
+
+    # номер счета в магазине (должен быть уникальным для магазина)
+    PreviousInvoiceID = forms.IntegerField(min_value=0, required=False)
+
+    # описание покупки
+    Desc = forms.CharField(max_length=100, required=False)
+
+    # контрольная сумма MD5
+    SignatureValue = forms.CharField(max_length=32)
+
+    # e-mail пользователя
+    Email = forms.CharField(max_length=100, required=False)
+
+    # язык общения с клиентом (en или ru)
+    Culture = forms.CharField(max_length=10, required=False)
+
+    # Товарные позиции
+    Receipt = forms.CharField(max_length=1000, required=False)
+
+    # Параметр с URL'ом, на который форма должны быть отправлена.
+    # Может пригодиться для использования в шаблоне.
+    target = FORM_TARGET
+
+    def __init__(self, *args, **kwargs):
+
+        super(RobokassaForm, self).__init__(*args, **kwargs)
+
+        if TEST_MODE is True:
+            self.fields['isTest'] = forms.BooleanField(required=False)
+            self.fields['isTest'].initial = 1
+
+        # скрытый виджет по умолчанию
+        for field in self.fields:
+            self.fields[field].widget = forms.HiddenInput()
+
+        self.fields['SignatureValue'].initial = self._get_signature()
+
+    def get_redirect_url(self):
+        """ Получить URL с GET-параметрами, соответствующими значениям полей в
+        форме. Редирект на адрес, возвращаемый этим методом, эквивалентен
+        ручной отправке формы методом GET.
+        """
+
+        def _initial(name, field):
+            val = self.initial.get(name, field.initial)
+            if not val:
+                return val
+            return str(val).encode('1251')
+
+        fields = [(name, _initial(name, field))
+                  for name, field in list(self.fields.items())
+                  if _initial(name, field)
+                  ]
+        params = urlencode(fields)
+        return self.target + '?' + params
+
+    def _get_signature_string(self):
+        def _val(name):
+            value = self.initial[name] if name in self.initial else self.fields[name].initial
+            if value is None:
+                return ''
+            return str(value)
+
+        if _val('Receipt'):
+            standard_part = ':'.join([_val('MrchLogin'), _val('OutSum'), _val('InvoiceID'), _val('Receipt'), PASSWORD1])
+        else:
+            standard_part = ':'.join([_val('MrchLogin'), _val('OutSum'), _val('InvoiceID'), PASSWORD1])
         return self._append_extra_part(standard_part, _val)
 
 
