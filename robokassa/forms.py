@@ -71,7 +71,7 @@ class RobokassaForm(BaseRobokassaForm):
 
     # Параметр с URL'ом, на который форма должны быть отправлена.
     # Может пригодиться для использования в шаблоне.
-    target = RECUR_FORM_TARGET
+    target = FORM_TARGET
 
     def __init__(self, *args, **kwargs):
 
@@ -150,7 +150,7 @@ class RobokassaRecurringForm(BaseRobokassaForm):
 
     # Параметр с URL'ом, на который форма должны быть отправлена.
     # Может пригодиться для использования в шаблоне.
-    target = FORM_TARGET
+    target = RECUR_FORM_TARGET
 
     def __init__(self, *args, **kwargs):
 
