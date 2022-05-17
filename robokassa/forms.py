@@ -1,5 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
+import json
 
 from hashlib import md5
 from urllib.parse import urlencode, quote_plus
@@ -39,36 +40,26 @@ class BaseRobokassaForm(forms.Form):
 
 
 class RobokassaForm(BaseRobokassaForm):
-    # login магазина в обменном пункте
-    MrchLogin = forms.CharField(max_length=20, initial=LOGIN)
-
+    # Идентификатор магазина
+    MerchantLogin = forms.CharField(max_length=20, initial=LOGIN)
     # требуемая к получению сумма
     OutSum = forms.DecimalField(min_value=0, max_digits=20, decimal_places=2, required=False)
-
-    # номер счета в магазине (должен быть уникальным для магазина)
+    # Номер счета в магазине. Необязательный параметр, но мы настоятельно рекомендуем его использовать. Значение этого параметра должно быть уникальным для каждой оплаты.
     InvId = forms.IntegerField(min_value=0, required=False)
-
     # описание покупки
-    Desc = forms.CharField(max_length=100, required=False)
-
+    Description = forms.CharField(max_length=1000, required=False)
     # контрольная сумма MD5
     SignatureValue = forms.CharField(max_length=32)
-
     # предлагаемая валюта платежа
     IncCurrLabel = forms.CharField(max_length=10, required=False)
-
-    # e-mail пользователя
-    Email = forms.CharField(max_length=100, required=False)
-
     # язык общения с клиентом (en или ru)
     Culture = forms.CharField(max_length=10, required=False)
-
+    # e-mail пользователя
+    Email = forms.CharField(max_length=100, required=False)
     # Рекуррентный платеж
     Recurring = forms.BooleanField(required=False)
-
     # Товарные позиции
-    Receipt = forms.CharField(max_length=1000, required=False)
-
+    Receipt = forms.CharField(max_length=2000, required=False)
     # Параметр с URL'ом, на который форма должны быть отправлена.
     # Может пригодиться для использования в шаблоне.
     target = FORM_TARGET
@@ -113,40 +104,41 @@ class RobokassaForm(BaseRobokassaForm):
                 return ''
             return str(value)
 
+        hash_string_array = [_val('MerchantLogin'), _val('OutSum'), _val('InvId')]
+
+        if _val('UserIP'):
+            hash_string_array.append(_val('UserIP'))
         if _val('Receipt'):
-            standard_part = ':'.join([_val('MrchLogin'), _val('OutSum'), _val('InvId'), _val('Receipt'), PASSWORD1])
-        else:
-            standard_part = ':'.join([_val('MrchLogin'), _val('OutSum'), _val('InvId'), PASSWORD1])
-        return self._append_extra_part(standard_part, _val)
+            hash_string_array.append(_val('Receipt'))
+
+        hash_string_array.append(PASSWORD1)
+
+        for key in EXTRA_PARAMS:
+            hash_string_array.append(f"shp{key}={_val(key)}")
+
+        return ':'.join(hash_string_array)
 
 
 class RobokassaRecurringForm(BaseRobokassaForm):
     # login магазина в обменном пункте
-    MrchLogin = forms.CharField(max_length=20, initial=LOGIN)
-
+    MerchantLogin = forms.CharField(max_length=20, initial=LOGIN)
     # требуемая к получению сумма
     OutSum = forms.DecimalField(min_value=0, max_digits=20, decimal_places=2, required=False)
-
     # номер счета в магазине (должен быть уникальным для магазина)
     InvoiceID = forms.IntegerField(min_value=0, required=True)
-
     # номер счета в магазине (должен быть уникальным для магазина)
     PreviousInvoiceID = forms.IntegerField(min_value=0, required=False)
 
     # описание покупки
-    Desc = forms.CharField(max_length=100, required=False)
-
+    Description = forms.CharField(max_length=100, required=False)
     # контрольная сумма MD5
     SignatureValue = forms.CharField(max_length=32)
-
     # e-mail пользователя
     Email = forms.CharField(max_length=100, required=False)
-
     # язык общения с клиентом (en или ru)
     Culture = forms.CharField(max_length=10, required=False)
-
     # Товарные позиции
-    Receipt = forms.CharField(max_length=1000, required=False)
+    Receipt = forms.CharField(max_length=2000, required=False)
 
     # Параметр с URL'ом, на который форма должны быть отправлена.
     # Может пригодиться для использования в шаблоне.
@@ -154,7 +146,7 @@ class RobokassaRecurringForm(BaseRobokassaForm):
 
     def __init__(self, *args, **kwargs):
 
-        super(RobokassaForm, self).__init__(*args, **kwargs)
+        super(RobokassaRecurringForm, self).__init__(*args, **kwargs)
 
         if TEST_MODE is True:
             self.fields['isTest'] = forms.BooleanField(required=False)
@@ -192,11 +184,19 @@ class RobokassaRecurringForm(BaseRobokassaForm):
                 return ''
             return str(value)
 
+        hash_string_array = [_val('MerchantLogin'), _val('OutSum'), _val('InvoiceID')]
+
+        if _val('UserIP'):
+            hash_string_array.append(_val('UserIP'))
         if _val('Receipt'):
-            standard_part = ':'.join([_val('MrchLogin'), _val('OutSum'), _val('InvoiceID'), _val('Receipt'), PASSWORD1])
-        else:
-            standard_part = ':'.join([_val('MrchLogin'), _val('OutSum'), _val('InvoiceID'), PASSWORD1])
-        return self._append_extra_part(standard_part, _val)
+            hash_string_array.append(_val('Receipt'))
+
+        hash_string_array.append(PASSWORD1)
+
+        for key in EXTRA_PARAMS:
+            hash_string_array.append(f"shp{key}={_val(key)}")
+
+        return ':'.join(hash_string_array)
 
 
 class ResultURLForm(BaseRobokassaForm):
@@ -217,8 +217,14 @@ class ResultURLForm(BaseRobokassaForm):
 
     def _get_signature_string(self):
         _val = lambda name: str(self.cleaned_data[name])
-        standard_part = ':'.join([_val('OutSum'), _val('InvId'), PASSWORD2])
-        return self._append_extra_part(standard_part, _val)
+
+        hash_string_array = [_val('OutSum'), _val('InvId')]
+        hash_string_array.append(PASSWORD2)
+
+        for key in EXTRA_PARAMS:
+            hash_string_array.append(f"shp{key}={_val(key)}")
+
+        return ':'.join(hash_string_array)
 
 
 class _RedirectPageForm(ResultURLForm):
@@ -228,8 +234,14 @@ class _RedirectPageForm(ResultURLForm):
 
     def _get_signature_string(self):
         _val = lambda name: str(self.cleaned_data[name])
-        standard_part = ':'.join([_val('OutSum'), _val('InvId'), PASSWORD1])
-        return self._append_extra_part(standard_part, _val)
+
+        hash_string_array = [_val('OutSum'), _val('InvId')]
+        hash_string_array.append(PASSWORD1)
+
+        for key in EXTRA_PARAMS:
+            hash_string_array.append(f"shp{key}={_val(key)}")
+
+        return ':'.join(hash_string_array)
 
 
 class SuccessRedirectForm(_RedirectPageForm):
