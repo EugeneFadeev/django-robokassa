@@ -5,7 +5,7 @@ from hashlib import md5
 from urllib.parse import urlencode, quote_plus
 from django import forms
 
-from robokassa.conf import LOGIN, PASSWORD1, PASSWORD2, TEST_MODE, STRICT_CHECK, FORM_TARGET, EXTRA_PARAMS
+from robokassa.conf import LOGIN, PASSWORD1, PASSWORD2, TEST_MODE, STRICT_CHECK, FORM_TARGET, RECUR_FORM_TARGET, EXTRA_PARAMS
 from robokassa.models import SuccessNotification
 
 
