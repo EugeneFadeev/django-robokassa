@@ -106,8 +106,8 @@ class RobokassaForm(BaseRobokassaForm):
 
         hash_string_array = [_val('MerchantLogin'), _val('OutSum'), _val('InvId')]
 
-        if _val('UserIP'):
-            hash_string_array.append(_val('UserIP'))
+#         if _val('UserIP'):
+#             hash_string_array.append(_val('UserIP'))
         if _val('Receipt'):
             hash_string_array.append(_val('Receipt'))
 
@@ -186,8 +186,8 @@ class RobokassaRecurringForm(BaseRobokassaForm):
 
         hash_string_array = [_val('MerchantLogin'), _val('OutSum'), _val('InvoiceID')]
 
-        if _val('UserIP'):
-            hash_string_array.append(_val('UserIP'))
+#         if _val('UserIP'):
+#             hash_string_array.append(_val('UserIP'))
         if _val('Receipt'):
             hash_string_array.append(_val('Receipt'))
 
