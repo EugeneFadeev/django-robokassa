@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import json
 
 from hashlib import md5
+from decimal import Decimal
 from urllib.parse import urlencode, quote_plus
 from django import forms
 
@@ -170,7 +171,9 @@ class RobokassaRecurringForm(BaseRobokassaForm):
             val = self.initial.get(name, field.initial)
             if not val:
                 return val
-            return str(val).encode('1251')
+            if isinstance(val, Decimal):
+                return str(number.quantize(Decimal("1.00")))
+            return str(val)
 
         fields = {name: _initial(name, field) for name, field in list(self.fields.items()) if _initial(name, field) }
         return fields
