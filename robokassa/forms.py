@@ -58,7 +58,7 @@ class RobokassaForm(BaseRobokassaForm):
     # e-mail пользователя
     Email = forms.CharField(max_length=100, required=False)
     # Рекуррентный платеж
-    Recurring = forms.BooleanField(required=False)
+    Recurring = forms.CharField(max_length=10, required=False)
     # Товарные позиции
     Receipt = forms.CharField(max_length=2000, required=False)
     # Параметр с URL'ом, на который форма должны быть отправлена.
@@ -79,6 +79,25 @@ class RobokassaForm(BaseRobokassaForm):
 
         self.fields['SignatureValue'].initial = self._get_signature()
 
+    def get_target_url(self):
+        return self.target
+
+    def get_post_data(self):
+        """ Получить Data для POST запроса, соответствующими значениям полей в
+        форме.
+        """
+
+        def _initial(name, field):
+            val = self.initial.get(name, field.initial)
+            if not val:
+                return val
+            if isinstance(val, Decimal):
+                return str(number.quantize(Decimal("1.00")))
+            return str(val)
+
+        fields = {name: _initial(name, field) for name, field in list(self.fields.items()) if _initial(name, field) }
+        return fields
+    
     def get_redirect_url(self):
         """ Получить URL с GET-параметрами, соответствующими значениям полей в
         форме. Редирект на адрес, возвращаемый этим методом, эквивалентен
