@@ -92,7 +92,7 @@ class RobokassaForm(BaseRobokassaForm):
             if not val:
                 return val
             if isinstance(val, Decimal):
-                return str(number.quantize(Decimal("1.00")))
+                return str(val.quantize(Decimal("1.00")))
             return str(val)
 
         fields = {name: _initial(name, field) for name, field in list(self.fields.items()) if _initial(name, field) }
@@ -191,7 +191,7 @@ class RobokassaRecurringForm(BaseRobokassaForm):
             if not val:
                 return val
             if isinstance(val, Decimal):
-                return str(number.quantize(Decimal("1.00")))
+                return str(val.quantize(Decimal("1.00")))
             return str(val)
 
         fields = {name: _initial(name, field) for name, field in list(self.fields.items()) if _initial(name, field) }
